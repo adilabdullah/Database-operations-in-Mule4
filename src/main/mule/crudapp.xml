@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="995ed4e7-4da2-4e1f-855c-2c8d6cc5a0e4" basePath="/API" >
+		<http:listener-connection host="localhost" port="8084"/>
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="adff562e-6665-44d4-ab59-609870411214" >
+		<db:oracle-connection host="localhost" user="ibm_ace" password="adil1234" serviceName="XE" />
+	</db:config>
+	<db:config name="MysqlConnection" doc:name="Database Config" doc:id="4a3ef837-5b9f-469d-9824-9f47500558a9" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Contour@1234" database="ibm_ace" />
+	</db:config>
+	<flow name="Insert" doc:id="67d52725-0f0d-41b4-acfd-bc718927c6b7" >
+		<http:listener doc:name="Listener" doc:id="6c507853-1dee-464f-b7f5-b40c33b75bc1" config-ref="HTTP_Listener_config" path="/Insert" allowedMethods="POST"/>
+		<logger level="INFO" doc:name="Logger" doc:id="5f23035d-140b-44a8-9126-61c932a96c36" />
+		<db:insert doc:name="Insert" doc:id="c4f1fc95-85fb-4900-9547-efff41ee5d18" config-ref="MysqlConnection">
+			<db:sql ><![CDATA[insert into ibm_ace.person
+(f_name,l_name,email,cell,age,salary,grade) values
+(:name,:father,:email,:cell,:age,:salary,:grade);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'name':'sufian','father':'abdullah','email':'sufian2008@gmail.com','cell':'03219544785','age':27,'salary':5400.63,'grade':'computer scientist'}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="e00bf728-0124-4e2c-a1a2-c1b8d56facb6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Response:
+	{
+		ResponseCode:100,
+		ResponseDesc:'Success'
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="Update" doc:id="26ec5df8-bacc-4961-8a2a-2c9e0e8a41e2" >
+		<http:listener doc:name="Listener" doc:id="e34313f5-40c8-4ba7-b33e-1c7ef57ccc2e" config-ref="HTTP_Listener_config" path="/Update" allowedMethods="PUT"/>
+		<db:update doc:name="Update" doc:id="456cc0c2-9b8a-46d5-b2e0-230149e21187" config-ref="MysqlConnection">
+			<db:sql ><![CDATA[update ibm_ace.person set
+f_name=:fname,l_name=:lname,email=:email where sno=:sno;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'fname':'abdul','lname':'rauf','email':'printzone@yahoo.com','sno':4}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="6e683aae-93fc-4ef3-80dc-84c1ab25fbeb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Response:
+	{
+		ResponseCode:100,
+		ResponseDesc:'Success'
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="Delete" doc:id="603b5dc1-db60-4f88-890e-5a960440ce04" >
+		<http:listener doc:name="Listener" doc:id="a74a46bf-739a-4aab-894e-6e25401a9414" config-ref="HTTP_Listener_config" path="/Delete" allowedMethods="DELETE"/>
+		<db:delete doc:name="Delete" doc:id="c4885de8-6d4f-409c-996f-e2cc5dcacb2b" config-ref="MysqlConnection">
+			<db:sql ><![CDATA[delete from ibm_ace.person where sno=:sno]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'sno':3}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="f2e96d6d-c5f3-4caf-a808-4d4d1797f48a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Response:
+	{
+		ResponseCode:100,
+		ResponseDesc:'Success'
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="All" doc:id="8eddb236-3082-4b9c-a420-22a252941480" >
+		<http:listener doc:name="Listener" doc:id="287160f7-daf4-4596-8ad7-44ca65c1630d" config-ref="HTTP_Listener_config" path="/All" allowedMethods="GET"/>
+		<db:select doc:name="Select" doc:id="95f59e03-6cd9-485b-8083-e1c700e182f7" config-ref="MysqlConnection">
+			<db:sql ><![CDATA[select * from ibm_ace.person]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="c2a9fe5a-a9fc-4416-8511-3c9ffb452f2d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Response:
+	{
+		ResponseCode:100,
+		ResponseDesc:'Success',
+		Result:payload
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="Specific" doc:id="3498309a-7114-4304-a7f7-b70d57bfc573" >
+		<http:listener doc:name="Listener" doc:id="a8a91ae9-d015-4f93-98d9-fd256cc57d7d" config-ref="HTTP_Listener_config" path="/Specific" allowedMethods="GET"/>
+		<db:select doc:name="Select" doc:id="67d92a53-837f-47c8-9b6e-1568289c9ef9" config-ref="MysqlConnection">
+			<db:sql ><![CDATA[select * from ibm_ace.person where sno=:sno]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'sno':1}]
+]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="e2a22aaa-efcd-4dc3-97d9-0802f57343cd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Response:
+	{
+		ResponseCode:100,
+		ResponseDesc:'Success',
+		Result:payload
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
